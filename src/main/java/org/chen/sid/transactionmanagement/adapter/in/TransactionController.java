@@ -10,6 +10,7 @@ import org.chen.sid.transactionmanagement.adapter.in.dto.CreateTransactionReques
 import org.chen.sid.transactionmanagement.adapter.in.dto.UpdateTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.command.TransactionCommandUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.domain.model.command.CreateTransactionCommand;
 import org.chen.sid.transactionmanagement.domain.model.command.UpdateTransactionCommand;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
@@ -17,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @Tag(name = "Transaction Management", description = "Transaction CRUD operations using CQRS pattern")
@@ -72,8 +72,10 @@ public class TransactionController {
     @Operation(summary = "List transactions", description = "Get all transactions using Query pattern")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Transactions retrieved successfully")})
     @GetMapping
-    public List<Transaction> getAllTransactions() {
-        return transactionQueryUseCase.getAllTransactions();
+    public Page<Transaction> getAllTransactions(@RequestParam(required = false, defaultValue = "1") Long page,
+            @RequestParam(required = false, defaultValue = "10") Long size) {
+
+        return transactionQueryUseCase.getPageTransactions(page, size);
     }
 
     @Operation(summary = "Delete transaction", description = "Delete transaction by ID using Command pattern")

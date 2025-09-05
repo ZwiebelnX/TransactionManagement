@@ -5,6 +5,7 @@ import org.chen.sid.transactionmanagement.adapter.in.dto.CreateTransactionReques
 import org.chen.sid.transactionmanagement.adapter.in.dto.UpdateTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.command.TransactionCommandUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
 import org.chen.sid.transactionmanagement.domain.model.command.CreateTransactionCommand;
 import org.chen.sid.transactionmanagement.domain.model.command.UpdateTransactionCommand;
@@ -169,28 +170,30 @@ class TransactionControllerTest {
                 .build();
 
         List<Transaction> transactions = Arrays.asList(sampleTransaction, transaction2);
-        when(transactionQueryUseCase.getAllTransactions()).thenReturn(transactions);
+        when(transactionQueryUseCase.getPageTransactions(1, 10)).thenReturn(new Page<>(2, transactions));
 
-        mockMvc.perform(get("/api/v1/transactions"))
+        mockMvc.perform(get("/api/v1/transactions").param("page", "1").param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value("test-id-123"))
-                .andExpect(jsonPath("$[1].id").value("test-id-456"));
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].id").value("test-id-123"))
+                .andExpect(jsonPath("$.data[1].id").value("test-id-456"));
 
-        verify(transactionQueryUseCase, times(1)).getAllTransactions();
+        verify(transactionQueryUseCase, times(1)).getPageTransactions(1, 10);
     }
 
     @Test
     void should_return_empty_list_when_no_transactions_exist() throws Exception {
-        when(transactionQueryUseCase.getAllTransactions()).thenReturn(List.of());
+        when(transactionQueryUseCase.getPageTransactions(1, 10)).thenReturn(new Page<>(0, List.of()));
 
-        mockMvc.perform(get("/api/v1/transactions"))
+        mockMvc.perform(get("/api/v1/transactions").param("page", "1").param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.total").value(0))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(0));
 
-        verify(transactionQueryUseCase, times(1)).getAllTransactions();
+        verify(transactionQueryUseCase, times(1)).getPageTransactions(1, 10);
     }
 
     @Test

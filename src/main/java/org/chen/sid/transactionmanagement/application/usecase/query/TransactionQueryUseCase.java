@@ -1,11 +1,11 @@
 package org.chen.sid.transactionmanagement.application.usecase.query;
 
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,8 +23,8 @@ public class TransactionQueryUseCase {
         return transactionRepository.findById(id);
     }
 
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+    public Page<Transaction> getPageTransactions(long page, long limit) {
+        return transactionRepository.findPage(page, limit);
     }
 
     private void validateId(String id) {

@@ -1,16 +1,16 @@
 package org.chen.sid.transactionmanagement.adapter.out.repo;
 
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
-public class TransactionRepositoryImpl implements TransactionRepository {
+public class MemoryTransactionRepository implements TransactionRepository {
 
     private final ConcurrentHashMap<String, Transaction> transactionStore = new ConcurrentHashMap<>();
 
@@ -35,8 +35,10 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
 
     @Override
-    public List<Transaction> findAll() {
-        return new ArrayList<>(transactionStore.values());
+    public Page<Transaction> findPage(long page, long size) {
+        long total = transactionStore.mappingCount();
+        List<Transaction> data = transactionStore.values().stream().skip((page - 1) * size).limit(size).toList();
+        return new Page<>(total, data);
     }
 
     @Override

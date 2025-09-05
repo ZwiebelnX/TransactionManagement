@@ -17,10 +17,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -56,9 +54,9 @@ class TransactionCommandUseCaseTest {
 
         Transaction result = transactionCommandUseCase.createTransaction(command);
 
-        assertNotNull(result);
-        assertEquals("Test Transaction", result.getName());
-        assertEquals(new BigDecimal("100.00"), result.getAmount());
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo("Test Transaction");
+        assertThat(result.getAmount()).isEqualTo(new BigDecimal("100.00"));
         verify(transactionRepository, times(1)).save(any(Transaction.class));
     }
 
@@ -66,9 +64,8 @@ class TransactionCommandUseCaseTest {
     void should_throw_exception_when_null_name_given() {
         CreateTransactionCommand command = CreateTransactionCommand.of(null, new BigDecimal("100.00"));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> transactionCommandUseCase.createTransaction(command));
-
-        assertEquals("Transaction name cannot be null or empty", exception.getMessage());
+        assertThatThrownBy(() -> transactionCommandUseCase.createTransaction(command)).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction name cannot be null or empty");
         verify(transactionRepository, never()).save(any());
     }
 
@@ -76,9 +73,8 @@ class TransactionCommandUseCaseTest {
     void should_throw_exception_when_negative_amount_given() {
         CreateTransactionCommand command = CreateTransactionCommand.of("Test Transaction", new BigDecimal("-100.00"));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> transactionCommandUseCase.createTransaction(command));
-
-        assertEquals("Transaction amount cannot be negative", exception.getMessage());
+        assertThatThrownBy(() -> transactionCommandUseCase.createTransaction(command)).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction amount cannot be negative");
         verify(transactionRepository, never()).save(any());
     }
 
@@ -90,7 +86,7 @@ class TransactionCommandUseCaseTest {
 
         Transaction result = transactionCommandUseCase.updateTransaction(command);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         verify(transactionRepository, times(1)).findById("test-id-123");
         verify(transactionRepository, times(1)).save(any(Transaction.class));
     }
@@ -100,9 +96,8 @@ class TransactionCommandUseCaseTest {
         UpdateTransactionCommand command = UpdateTransactionCommand.of("non-existent", "Updated Transaction", new BigDecimal("200.00"));
         when(transactionRepository.findById("non-existent")).thenReturn(Optional.empty());
 
-        DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> transactionCommandUseCase.updateTransaction(command));
-
-        assertTrue(exception.getMessage().contains("Transaction not found with id: non-existent"));
+        assertThatThrownBy(() -> transactionCommandUseCase.updateTransaction(command)).isInstanceOf(DataNotFoundException.class)
+                .hasMessageContaining("Transaction not found with id: non-existent");
         verify(transactionRepository, never()).save(any());
     }
 
@@ -110,9 +105,8 @@ class TransactionCommandUseCaseTest {
     void should_throw_exception_when_null_id_given_for_update() {
         UpdateTransactionCommand command = UpdateTransactionCommand.of(null, "Updated Transaction", new BigDecimal("200.00"));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> transactionCommandUseCase.updateTransaction(command));
-
-        assertEquals("Transaction ID cannot be null or empty", exception.getMessage());
+        assertThatThrownBy(() -> transactionCommandUseCase.updateTransaction(command)).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction ID cannot be null or empty");
         verify(transactionRepository, never()).findById(any());
         verify(transactionRepository, never()).save(any());
     }
@@ -121,9 +115,8 @@ class TransactionCommandUseCaseTest {
     void should_throw_exception_when_empty_id_given_for_update() {
         UpdateTransactionCommand command = UpdateTransactionCommand.of("", "Updated Transaction", new BigDecimal("200.00"));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> transactionCommandUseCase.updateTransaction(command));
-
-        assertEquals("Transaction ID cannot be null or empty", exception.getMessage());
+        assertThatThrownBy(() -> transactionCommandUseCase.updateTransaction(command)).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction ID cannot be null or empty");
         verify(transactionRepository, never()).findById(any());
         verify(transactionRepository, never()).save(any());
     }
@@ -148,18 +141,16 @@ class TransactionCommandUseCaseTest {
 
     @Test
     void should_throw_exception_when_null_id_given_for_deletion() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> transactionCommandUseCase.deleteTransaction(null));
-
-        assertEquals("Transaction ID cannot be null or empty", exception.getMessage());
+        assertThatThrownBy(() -> transactionCommandUseCase.deleteTransaction(null)).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction ID cannot be null or empty");
         verify(transactionRepository, never()).existsById(any());
         verify(transactionRepository, never()).deleteById(any());
     }
 
     @Test
     void should_throw_exception_when_empty_id_given_for_deletion() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> transactionCommandUseCase.deleteTransaction(""));
-
-        assertEquals("Transaction ID cannot be null or empty", exception.getMessage());
+        assertThatThrownBy(() -> transactionCommandUseCase.deleteTransaction("")).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction ID cannot be null or empty");
         verify(transactionRepository, never()).existsById(any());
         verify(transactionRepository, never()).deleteById(any());
     }

@@ -1,6 +1,7 @@
 package org.chen.sid.transactionmanagement.application.usecase;
 
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,11 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -55,9 +53,9 @@ class TransactionQueryUseCaseTest {
 
         Optional<Transaction> result = transactionQueryUseCase.getTransactionById("test-id-123");
 
-        assertTrue(result.isPresent());
-        assertEquals("test-id-123", result.get().getId());
-        assertEquals("Test Transaction", result.get().getName());
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("test-id-123");
+        assertThat(result.get().getName()).isEqualTo("Test Transaction");
         verify(transactionRepository, times(1)).findById("test-id-123");
     }
 
@@ -67,23 +65,21 @@ class TransactionQueryUseCaseTest {
 
         Optional<Transaction> result = transactionQueryUseCase.getTransactionById("non-existent");
 
-        assertFalse(result.isPresent());
+        assertThat(result).isEmpty();
         verify(transactionRepository, times(1)).findById("non-existent");
     }
 
     @Test
     void should_throw_exception_when_null_id_given() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> transactionQueryUseCase.getTransactionById(null));
-
-        assertEquals("Transaction ID cannot be null or empty", exception.getMessage());
+        assertThatThrownBy(() -> transactionQueryUseCase.getTransactionById(null)).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction ID cannot be null or empty");
         verify(transactionRepository, never()).findById(any());
     }
 
     @Test
     void should_throw_exception_when_empty_id_given() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> transactionQueryUseCase.getTransactionById(""));
-
-        assertEquals("Transaction ID cannot be null or empty", exception.getMessage());
+        assertThatThrownBy(() -> transactionQueryUseCase.getTransactionById("")).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction ID cannot be null or empty");
         verify(transactionRepository, never()).findById(any());
     }
 
@@ -98,25 +94,24 @@ class TransactionQueryUseCaseTest {
                 .build();
 
         List<Transaction> transactions = Arrays.asList(sampleTransaction, transaction2);
-        when(transactionRepository.findAll()).thenReturn(transactions);
+        when(transactionRepository.findPage(1, 10)).thenReturn(new Page<>(2, transactions));
 
-        List<Transaction> result = transactionQueryUseCase.getAllTransactions();
+        Page<Transaction> result = transactionQueryUseCase.getPageTransactions(1, 10);
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertTrue(result.contains(sampleTransaction));
-        assertTrue(result.contains(transaction2));
-        verify(transactionRepository, times(1)).findAll();
+        assertThat(result).isNotNull();
+        assertThat(result.getData()).hasSize(2);
+        assertThat(result.getData()).contains(sampleTransaction, transaction2);
+        verify(transactionRepository, times(1)).findPage(1, 10);
     }
 
     @Test
     void should_return_empty_list_when_no_transactions_exist() {
-        when(transactionRepository.findAll()).thenReturn(List.of());
+        when(transactionRepository.findPage(1, 10)).thenReturn(new Page<>(0, List.of()));
 
-        List<Transaction> result = transactionQueryUseCase.getAllTransactions();
+        Page<Transaction> result = transactionQueryUseCase.getPageTransactions(1, 10);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(transactionRepository, times(1)).findAll();
+        assertThat(result).isNotNull();
+        assertThat(result.getData()).isEmpty();
+        verify(transactionRepository, times(1)).findPage(1, 10);
     }
 }

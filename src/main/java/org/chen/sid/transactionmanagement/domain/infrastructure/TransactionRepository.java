@@ -1,8 +1,8 @@
 package org.chen.sid.transactionmanagement.domain.infrastructure;
 
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface TransactionRepository {
@@ -11,7 +11,7 @@ public interface TransactionRepository {
 
     Optional<Transaction> findById(String id);
 
-    List<Transaction> findAll();
+    Page<Transaction> findPage(long page, long size);
 
     boolean deleteById(String id);
 

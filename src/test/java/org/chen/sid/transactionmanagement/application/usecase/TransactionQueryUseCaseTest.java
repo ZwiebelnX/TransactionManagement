@@ -2,6 +2,7 @@ package org.chen.sid.transactionmanagement.application.usecase;
 
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
+import org.chen.sid.transactionmanagement.common.exception.RequestArgumentIllegalException;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -71,14 +73,14 @@ class TransactionQueryUseCaseTest {
 
     @Test
     void should_throw_exception_when_null_id_given() {
-        assertThatThrownBy(() -> transactionQueryUseCase.getTransactionById(null)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> transactionQueryUseCase.getTransactionById(null)).isInstanceOf(RequestArgumentIllegalException.class)
                 .hasMessage("Transaction ID cannot be null or empty");
         verify(transactionRepository, never()).findById(any());
     }
 
     @Test
     void should_throw_exception_when_empty_id_given() {
-        assertThatThrownBy(() -> transactionQueryUseCase.getTransactionById("")).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> transactionQueryUseCase.getTransactionById("")).isInstanceOf(RequestArgumentIllegalException.class)
                 .hasMessage("Transaction ID cannot be null or empty");
         verify(transactionRepository, never()).findById(any());
     }
@@ -113,5 +115,40 @@ class TransactionQueryUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.getData()).isEmpty();
         verify(transactionRepository, times(1)).findPage(1, 10);
+    }
+
+    @Test
+    void should_throw_exception_when_page_is_zero() {
+        assertThatThrownBy(() -> transactionQueryUseCase.getPageTransactions(0, 10)).isInstanceOf(RequestArgumentIllegalException.class)
+                .hasMessage("Page number must be greater than 0");
+        verify(transactionRepository, never()).findPage(anyLong(), anyLong());
+    }
+
+    @Test
+    void should_throw_exception_when_page_is_negative() {
+        assertThatThrownBy(() -> transactionQueryUseCase.getPageTransactions(-1, 10)).isInstanceOf(RequestArgumentIllegalException.class)
+                .hasMessage("Page number must be greater than 0");
+        verify(transactionRepository, never()).findPage(anyLong(), anyLong());
+    }
+
+    @Test
+    void should_throw_exception_when_size_is_zero() {
+        assertThatThrownBy(() -> transactionQueryUseCase.getPageTransactions(1, 0)).isInstanceOf(RequestArgumentIllegalException.class)
+                .hasMessage("Page size must be greater than 0");
+        verify(transactionRepository, never()).findPage(anyLong(), anyLong());
+    }
+
+    @Test
+    void should_throw_exception_when_size_is_negative() {
+        assertThatThrownBy(() -> transactionQueryUseCase.getPageTransactions(1, -1)).isInstanceOf(RequestArgumentIllegalException.class)
+                .hasMessage("Page size must be greater than 0");
+        verify(transactionRepository, never()).findPage(anyLong(), anyLong());
+    }
+
+    @Test
+    void should_throw_exception_when_both_page_and_size_are_invalid() {
+        assertThatThrownBy(() -> transactionQueryUseCase.getPageTransactions(0, 0)).isInstanceOf(RequestArgumentIllegalException.class)
+                .hasMessage("Page number must be greater than 0");
+        verify(transactionRepository, never()).findPage(anyLong(), anyLong());
     }
 }

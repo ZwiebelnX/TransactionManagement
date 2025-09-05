@@ -269,4 +269,29 @@ class TransactionIntegrationTest {
     void should_delete_successfully_even_when_transaction_does_not_exist() {
         given().when().delete("/api/v1/transactions/{id}", "non-existent-id").then().statusCode(204);
     }
+
+    @Test
+    void should_return_bad_request_when_page_is_zero() {
+        given().param("page", 0).param("size", 10).when().get("/api/v1/transactions").then().statusCode(400);
+    }
+
+    @Test
+    void should_return_bad_request_when_page_is_negative() {
+        given().param("page", -1).param("size", 10).when().get("/api/v1/transactions").then().statusCode(400);
+    }
+
+    @Test
+    void should_return_bad_request_when_size_is_zero() {
+        given().param("page", 1).param("size", 0).when().get("/api/v1/transactions").then().statusCode(400);
+    }
+
+    @Test
+    void should_return_bad_request_when_size_is_negative() {
+        given().param("page", 1).param("size", -1).when().get("/api/v1/transactions").then().statusCode(400);
+    }
+
+    @Test
+    void should_return_bad_request_when_both_page_and_size_are_invalid() {
+        given().param("page", 0).param("size", 0).when().get("/api/v1/transactions").then().statusCode(400);
+    }
 }

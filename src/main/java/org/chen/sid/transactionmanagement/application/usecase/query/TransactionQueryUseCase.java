@@ -5,6 +5,7 @@ import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.common.exception.RequestArgumentIllegalException;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -16,6 +17,7 @@ public class TransactionQueryUseCase {
 
     private static final int MAX_PAGE_SIZE = 1000;
 
+    @Cacheable(value = "transaction", key = "#id")
     public Optional<Transaction> getTransactionById(String id) {
         validateId(id);
         return transactionRepository.findById(id);

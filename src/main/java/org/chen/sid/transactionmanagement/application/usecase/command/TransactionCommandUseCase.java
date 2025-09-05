@@ -6,6 +6,7 @@ import org.chen.sid.transactionmanagement.domain.model.command.CreateTransaction
 import org.chen.sid.transactionmanagement.domain.model.command.UpdateTransactionCommand;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,6 +24,7 @@ public class TransactionCommandUseCase {
         return transactionRepository.save(transaction);
     }
 
+    @CacheEvict(value = "transaction", key = "#command.id")
     public Transaction updateTransaction(UpdateTransactionCommand command) {
         validateId(command.getId());
 
@@ -33,6 +35,7 @@ public class TransactionCommandUseCase {
         return transactionRepository.save(transaction);
     }
 
+    @CacheEvict(value = "transaction", key = "#id")
     public void deleteTransaction(String id) {
         validateId(id);
         transactionRepository.deleteById(id);

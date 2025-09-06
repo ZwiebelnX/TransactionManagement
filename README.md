@@ -90,11 +90,11 @@ graph TD
     classDef domainStyle fill: #fff3e0, stroke: #f57c00, stroke-width: 2px
     classDef infrastructureStyle fill: #e8f5e8, stroke: #388e3c, stroke-width: 2px
     classDef externalStyle fill: #ffebee, stroke: #d32f2f, stroke-width: 2px
-    class Adapters, InboundAdapters, OutboundAdapters adapterStyle
-    class Application, Commands, Queries applicationStyle
-    class Domain, DomainModel, DomainPorts domainStyle
+    class Adapters,InboundAdapters,OutboundAdapters adapterStyle
+    class Application,Commands,Queries applicationStyle
+    class Domain,DomainModel,DomainPorts domainStyle
     class Infrastructure infrastructureStyle
-    class Client, Memory externalStyle
+    class Client,Memory externalStyle
 ```
 
 ## 📁 Project Structure

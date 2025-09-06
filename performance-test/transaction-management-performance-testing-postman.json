@@ -1,0 +1,524 @@
+{
+  "info": {
+    "_postman_id": "c4f5d024-ec4c-4fcf-aee6-8a0c3a917af6",
+    "name": "Transaction Management - Performance Test",
+    "description": "性能测试集合：创建1000个随机数据并进行QPS 100的1分钟性能测试",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48206125",
+    "_collection_link": "https://zwiebelnx-ab8ca577-260803.postman.co/workspace/3cffb2e1-16f7-400c-8ea0-02ecd8763ef3/collection/48206125-c4f5d024-ec4c-4fcf-aee6-8a0c3a917af6?action=share&source=collection_link&creator=48206125"
+  },
+  "item": [
+    {
+      "name": "1. 数据准备 - 创建1000个随机交易",
+      "item": [
+        {
+          "name": "批量创建随机交易数据",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 设置要创建的交易数量",
+                  "const TRANSACTION_COUNT = 1000;",
+                  "",
+                  "// 如果这是第一次运行，初始化计数器",
+                  "if (!pm.collectionVariables.get('currentTransactionCount')) {",
+                  "    pm.collectionVariables.set('currentTransactionCount', '0');",
+                  "    pm.collectionVariables.set('totalTransactionCount', TRANSACTION_COUNT.toString());",
+                  "    pm.collectionVariables.set('createdTransactionIds', JSON.stringify([]));",
+                  "    console.log(pm.globals.get('currentTransactionCount'))",
+                  "    console.log('🚀 开始批量创建1000个随机交易数据...');",
+                  "}",
+                  "",
+                  "// 获取当前计数",
+                  "let currentCount = parseInt(pm.globals.get('currentTransactionCount'));",
+                  "const totalCount = parseInt(pm.globals.get('totalTransactionCount'));",
+                  "",
+                  "if (currentCount < totalCount) {",
+                  "    console.log(`正在创建第 ${currentCount + 1}/${totalCount} 个交易...`);",
+                  "} else {",
+                  "    console.log('❌ 所有交易已创建完成，跳过此请求');",
+                  "    postman.setNextRequest(null);",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 检查响应状态",
+                  "pm.test('交易创建成功', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "// 获取响应数据",
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    ",
+                  "    // 保存交易ID",
+                  "    let createdIds = JSON.parse(pm.collectionVariables.get('createdTransactionIds') || '[]');",
+                  "    createdIds.push(responseJson.id);",
+                  "    pm.collectionVariables.set('createdTransactionIds', JSON.stringify(createdIds));",
+                  "    ",
+                  "    // 更新计数器",
+                  "    let currentCount = parseInt(pm.collectionVariables.get('currentTransactionCount'));",
+                  "    currentCount++;",
+                  "    pm.collectionVariables.set('currentTransactionCount', currentCount.toString());",
+                  "    ",
+                  "    const totalCount = parseInt(pm.collectionVariables.get('totalTransactionCount'));",
+                  "    ",
+                  "    console.log(`已创建 ${currentCount}/${totalCount} 个交易`);",
+                  "    ",
+                  "    // 如果还没有创建完所有交易，继续下一个",
+                  "    if (currentCount < totalCount) {",
+                  "        pm.execution.setNextRequest('批量创建随机交易数据');",
+                  "    } else {",
+                  "        console.log('🎉 所有1000个随机交易数据创建完成！');",
+                  "        console.log('现在可以开始性能测试了。');",
+                  "        postman.setNextRequest(null);",
+                  "    }",
+                  "} else {",
+                  "    console.log('交易创建失败，停止批量创建');",
+                  "    postman.setNextRequest(null);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"批量创建_{{$timestamp}}_{{$randomInt}}\",\n  \"amount\": {{$randomPrice}},\n  \"type\": \"DEPOSIT\",\n  \"category\": \"test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. 性能测试 - QPS 100持续10分钟",
+      "item": [
+        {
+          "name": "创建交易 - 性能测试",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 性能测试创建交易 - 使用Postman内置动态变量",
+                  "// 无需手动设置变量，{{$timestamp}}、{{$randomInt}}和{{$randomPrice}}会自动生成",
+                  "// 这样避免了变量设置的权限问题"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 性能测试验证",
+                  "pm.test('响应时间小于500ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});",
+                  "",
+                  "pm.test('状态码为201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('响应包含交易ID', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('id');",
+                  "    pm.expect(responseJson.id).to.not.be.empty;",
+                  "    // 保存交易ID",
+                  "    let createdIds = JSON.parse(pm.collectionVariables.get('createdTransactionIds') || '[]');",
+                  "    createdIds.push(responseJson.id);",
+                  "    pm.collectionVariables.set('createdTransactionIds', JSON.stringify(createdIds));",
+                  "",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"性能测试_{{$timestamp}}_{{$randomInt}}\",\n    \"amount\": {{$randomPrice}},\n    \"type\": \"DEPOSIT\",\n    \"category\": \"test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "查询交易 - 性能测试",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 先获取存在的交易ID列表",
+                  "const createdIds = JSON.parse(pm.collectionVariables.get('createdTransactionIds') || '[]');",
+                  "",
+                  "if (createdIds.length > 0) {",
+                  "    const randomId = createdIds[Math.floor(Math.random() * createdIds.length)];",
+                  "    pm.collectionVariables.set('transactionId', randomId);",
+                  "} else {",
+                  "    // 如果没有已创建的交易，使用一个默认的ID",
+                  "    pm.collectionVariables.set('transactionId', 'test-id');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 查询性能测试验证",
+                  "pm.test('查询响应时间小于200ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});",
+                  "",
+                  "pm.test('查询状态码为200或404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('查询响应包含交易信息', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('id');",
+                  "        pm.expect(responseJson).to.have.property('name');",
+                  "        pm.expect(responseJson).to.have.property('amount');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/{{transactionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "{{transactionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "分页查询交易 - 性能测试",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 设置随机的分页参数",
+                  "const randomPage = Math.floor(Math.random() * 10) + 1; // 1-10页",
+                  "const randomSize = Math.floor(Math.random() * 20) + 5; // 5-25条记录",
+                  "",
+                  "pm.request.url.query.upsert({key: 'page', value: randomPage.toString()});",
+                  "pm.request.url.query.upsert({key: 'size', value: randomSize.toString()});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 分页查询性能测试验证",
+                  "pm.test('分页查询响应时间小于300ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(300);",
+                  "});",
+                  "",
+                  "pm.test('分页查询状态码为200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('分页查询响应格式正确', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('data');",
+                  "    pm.expect(responseJson).to.have.property('total');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions?page=1&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "删除交易 - 性能测试",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 先获取存在的交易ID列表",
+                  "const createdIds = JSON.parse(pm.collectionVariables.get('createdTransactionIds') || '[]');",
+                  "",
+                  "if (createdIds.length > 0) {",
+                  "    toDeleteId = createdIds.shift()",
+                  "    pm.collectionVariables.set('transactionToDelete', toDeleteId);",
+                  "} else {",
+                  "    // 如果没有已创建的交易，使用一个默认的ID",
+                  "    pm.collectionVariables.set('transactionToDelete', 'test-id');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 删除操作性能测试验证",
+                  "pm.test('删除响应时间小于300ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(300);",
+                  "});",
+                  "",
+                  "pm.test('删除状态码为204或404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+                  "});",
+                  "",
+                  "// 记录删除操作的统计信息",
+                  "if (!pm.globals.get('deleteMetrics')) {",
+                  "    pm.globals.set('deleteMetrics', JSON.stringify({",
+                  "        totalDeleteRequests: 0,",
+                  "        successfulDeletes: 0,",
+                  "        notFoundDeletes: 0,",
+                  "        totalDeleteResponseTime: 0",
+                  "    }));",
+                  "}",
+                  "",
+                  "let deleteMetrics = JSON.parse(pm.globals.get('deleteMetrics'));",
+                  "deleteMetrics.totalDeleteRequests++;",
+                  "deleteMetrics.totalDeleteResponseTime += pm.response.responseTime;",
+                  "",
+                  "if (pm.response.code === 204) {",
+                  "    deleteMetrics.successfulDeletes++;",
+                  "    console.log('✅ 交易删除成功:', pm.collectionVariables.get('transactionToDelete'));",
+                  "} else if (pm.response.code === 404) {",
+                  "    deleteMetrics.notFoundDeletes++;",
+                  "    console.log('ℹ️ 交易不存在:', pm.collectionVariables.get('transactionToDelete'));",
+                  "}",
+                  "",
+                  "pm.globals.set('deleteMetrics', JSON.stringify(deleteMetrics));",
+                  "",
+                  "// 每50个删除请求输出一次统计",
+                  "if (deleteMetrics.totalDeleteRequests % 50 === 0) {",
+                  "    const avgDeleteTime = (deleteMetrics.totalDeleteResponseTime / deleteMetrics.totalDeleteRequests).toFixed(2);",
+                  "    const successRate = ((deleteMetrics.successfulDeletes / deleteMetrics.totalDeleteRequests) * 100).toFixed(2);",
+                  "    ",
+                  "    console.log(`🗑️ 删除操作统计 (${deleteMetrics.totalDeleteRequests}个请求):`);",
+                  "    console.log(`   成功删除: ${deleteMetrics.successfulDeletes}个`);",
+                  "    console.log(`   未找到: ${deleteMetrics.notFoundDeletes}个`);",
+                  "    console.log(`   成功率: ${successRate}%`);",
+                  "    console.log(`   平均响应时间: ${avgDeleteTime}ms`);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/{{transactionToDelete}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "{{transactionToDelete}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. 辅助工具",
+      "item": [
+        {
+          "name": "清理测试数据",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 重置计数器和测试数据",
+                  "pm.collectionVariables.set('currentTransactionCount', 0);",
+                  "pm.collectionVariables.unset('totalTransactionCount', 1000);",
+                  "pm.collectionVariables.unset('createdTransactionIds', []);",
+                  "",
+                  "console.log('✅ 测试数据和计数器已清理完成');",
+                  "console.log('📊 已清理的数据包括:');",
+                  "console.log('   - 批量创建计数器');",
+                  "console.log('   - 已创建交易ID列表');",
+                  "console.log('   - 性能测试指标');",
+                  "console.log('   - 删除操作指标');",
+                  "",
+                  "// 跳过实际请求",
+                  "postman.setNextRequest(null);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions?page=1&size=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "transactionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transactionToDelete",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "randomName",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "randomAmount",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentTransactionCount",
+      "value": ""
+    },
+    {
+      "key": "totalTransactionCount",
+      "value": ""
+    },
+    {
+      "key": "createdTransactionIds",
+      "value": ""
+    }
+  ]
+}

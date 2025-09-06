@@ -317,6 +317,48 @@ docker-compose up --build
 ./mvnw test -Dtest=TransactionIntegrationTest
 ```
 
+## ⚡ Performance Testing
+
+### 📊 Test Environment
+
+- **Runtime Environment**: Docker Container
+- **Hardware Configuration**:
+    - CPU: 4 Cores (Apple M3 Pro)
+    - Memory: 2GB RAM
+- **Testing Tool**: Postman
+
+### 🚀 Quick Start
+
+1. **Import Postman Scripts**:
+   ```bash
+   # Import test collection
+   performance-test/transaction-management-performance-testing-postman.json
+   
+   # Import environment configuration
+   performance-test/transaction-management-performance-testing-postman-env.json
+   ```
+
+2. **Start Application**:
+   ```bash
+   # Launch application using Docker Compose
+   docker-compose up --build
+   ```
+
+3. **Execute Performance Tests**:
+    - Select the imported environment configuration in Postman
+    - Run performance test scenarios from the test collection
+    - Monitor application performance and resource usage
+
+### 📋 Test Results
+
+For detailed performance test reports and analysis, please refer to:
+
+- **Complete Report**: [Transaction-Management-Performance-Report.pdf](performance-test/Transaction-Management-Performance-Report.pdf)
+- **Resource Usage**: [Docker-Resource-Usage.png](performance-test/Docker-Resource-Usage.png)
+
+The test report contains comprehensive analysis of detailed performance metrics, response time analysis, throughput statistics, and system resource
+utilization.
+
 ## 📈 Benefits of This Architecture
 
 1. **🔄 Separation of Concerns**: Each layer has a specific responsibility

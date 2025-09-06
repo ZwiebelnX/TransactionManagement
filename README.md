@@ -103,17 +103,17 @@ graph TD
 src/main/java/org/chen/sid/transactionmanagement/
 ├── TransactionManagementApplication.java     # 🚀 Main Spring Boot Application
 ├── adapter/                                  # 🔌 Hexagonal Architecture - Adapters Layer
-│   ├── in/                                   # 📥 Inbound Adapters (Controllers, DTOs)
-│   │   ├── dto/                              # 📋 Data Transfer Objects
-│   │   ├── exception/                        # 🚨 Global Exception Handlers
-│   │   └── TransactionController.java        # 🎮 REST API Controller
+│   ├── in/                                   # 📥 Inbound Adapters (Controllers)
+│   │   └── exception/                        # 🚨 Global Exception Handlers
 │   └── out/                                  # 📤 Outbound Adapters (Repository Implementations)
 │       └── repo/                             # 💾 Repository Implementations
 ├── application/                              # 💼 Application Layer - Use Cases
-│   └── usecase/
-│       ├── command/                          # ⚡ CQRS - Command Side (Write Operations)
-│       └── query/                            # 🔍 CQRS - Query Side (Read Operations)
-│           └── dto/                          # 📄 Query DTOs (Page, etc.)
+│   ├── usecase/
+│   │   ├── command/                          # ⚡ CQRS - Command Side (Write Operations)
+│   │   │   └── dto/                          # 📋 Command DTOs
+│   │   └── query/                            # 🔍 CQRS - Query Side (Read Operations)
+│   │       └── dto/                          # 📄 Query DTOs
+│   └── validator/                            # ✅ Request Validation
 ├── common/                                   # 🛠️ Shared Components
 │   └── exception/                            # 🚨 Common Exception Classes
 │       └── basic/                            # 🔧 Base Exception Classes
@@ -131,9 +131,7 @@ src/main/java/org/chen/sid/transactionmanagement/
 
 **Purpose**: Implements the ports defined by the domain layer and handles external communication.
 
-- **`in/`**: **Inbound Adapters** - Handle incoming requests (REST Controllers, Message Listeners)
-    - `TransactionController`: REST API endpoints for transaction operations
-    - `dto/`: Request/Response data structures
+- **`in/`**: **Inbound Adapters** - Handle incoming requests (REST Controllers)
     - `exception/`: Global exception handling for web layer
 
 - **`out/`**: **Outbound Adapters** - Handle outgoing calls (Database, External APIs)
@@ -144,7 +142,12 @@ src/main/java/org/chen/sid/transactionmanagement/
 **Purpose**: Orchestrates domain objects and implements application-specific business rules through use cases.
 
 - **`usecase/command/`**: **Command Side (CQRS)** - Handles write operations (Create, Update, Delete)
+    - `dto/`: Command-specific Data Transfer Objects
+
 - **`usecase/query/`**: **Query Side (CQRS)** - Handles read operations (Get, List, Search)
+    - `dto/`: Query-specific Data Transfer Objects (pagination, response models)
+
+- **`validator/`**: **Request Validation** - Common validation logic for request parameters
 
 ### 🏛️ Domain Layer (`domain/`)
 
@@ -156,11 +159,14 @@ src/main/java/org/chen/sid/transactionmanagement/
 
 ### ⚙️ Config Layer (`config/`)
 
-**Purpose**: Spring configuration classes for application setup.
+**Purpose**: Spring configuration classes for application setup (cache, OpenAPI documentation).
 
 ### 🛠️ Common Layer (`common/`)
 
 **Purpose**: Shared utilities and exceptions used across layers.
+
+- **`exception/basic/`**: Base exception classes for the application
+- **Exception Classes**: Specific exception types for different error scenarios
 
 ## 🔄 CQRS Implementation
 
@@ -376,6 +382,16 @@ utilization.
 4. **📈 Scalability**: CQRS allows independent scaling of read and write operations
 5. **🛡️ Maintainability**: Clear boundaries make the code easier to understand and modify
 6. **🚀 Performance**: Caching and query optimization on the read side
+
+## 🚀 Areas for Improvement
+
+While the current implementation demonstrates solid architectural principles, there are several areas that could be enhanced for production readiness and scalability:
+
+1. **🔐 Authentication and Frontend Integration** - Add authentication mechanisms, role-based access control, and develop frontend interaction logic for a complete user experience.
+
+2. **⚡ Database Concurrency Optimization** - The current coarse-grained read-write locks can become a bottleneck under high concurrency, requiring fine-grained locking strategies for better performance.
+
+3. **🗄️ Complete CQRS Database Segregation** - Due to memory store limitations, CQRS pattern is not fully realized at the database layer, preventing independent scaling of read and write operations.
 
 ## 🏷️ Version
 

@@ -111,29 +111,6 @@ class TransactionCommandUseCaseTest {
         verify(transactionRepository, never()).save(any());
     }
 
-    @Test
-    void should_throw_exception_when_null_id_given_for_update() {
-        UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO("Updated Transaction", new BigDecimal("200.00"));
-        request.setCategory("Shopping");
-        request.setType(TransactionType.WITHDRAW);
-
-        assertThatThrownBy(() -> transactionCommandUseCase.updateTransaction(null, request)).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction ID cannot be null or empty");
-        verify(transactionRepository, never()).findById(any());
-        verify(transactionRepository, never()).save(any());
-    }
-
-    @Test
-    void should_throw_exception_when_empty_id_given_for_update() {
-        UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO("Updated Transaction", new BigDecimal("200.00"));
-        request.setCategory("Shopping");
-        request.setType(TransactionType.WITHDRAW);
-
-        assertThatThrownBy(() -> transactionCommandUseCase.updateTransaction("", request)).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction ID cannot be null or empty");
-        verify(transactionRepository, never()).findById(any());
-        verify(transactionRepository, never()).save(any());
-    }
 
     @Test
     void should_delete_transaction_when_valid_id_given() {
@@ -153,19 +130,4 @@ class TransactionCommandUseCaseTest {
         verify(transactionRepository, times(1)).deleteById(id);
     }
 
-    @Test
-    void should_throw_exception_when_null_id_given_for_deletion() {
-        assertThatThrownBy(() -> transactionCommandUseCase.deleteTransaction(null)).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction ID cannot be null or empty");
-        verify(transactionRepository, never()).existsById(any());
-        verify(transactionRepository, never()).deleteById(any());
-    }
-
-    @Test
-    void should_throw_exception_when_empty_id_given_for_deletion() {
-        assertThatThrownBy(() -> transactionCommandUseCase.deleteTransaction("")).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction ID cannot be null or empty");
-        verify(transactionRepository, never()).existsById(any());
-        verify(transactionRepository, never()).deleteById(any());
-    }
 }

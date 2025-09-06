@@ -2,8 +2,9 @@ package org.chen.sid.transactionmanagement.application.usecase.query;
 
 import lombok.RequiredArgsConstructor;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.TransactionDTO;
+import org.chen.sid.transactionmanagement.application.validator.CommonRequestParamValidator;
 import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
-import org.chen.sid.transactionmanagement.common.exception.RequestArgumentIllegalException;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.cache.annotation.Cacheable;
@@ -14,34 +15,15 @@ import org.springframework.stereotype.Service;
 public class TransactionQueryUseCase {
     private final TransactionRepository transactionRepository;
 
-    private static final int MAX_PAGE_SIZE = 1000;
-
     @Cacheable(value = "transaction", key = "#id")
-    public Transaction getTransactionById(String id) {
-        validateId(id);
-        return transactionRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Transaction not found"));
+    public TransactionDTO getTransactionById(String id) {
+        CommonRequestParamValidator.validateId(id);
+        return TransactionDTO.from(transactionRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Transaction not found")));
     }
 
-    public Page<Transaction> getPageTransactions(long page, long limit) {
-        validatePaginationParameters(page, limit);
-        return transactionRepository.findPage(page, limit);
-    }
-
-    private void validateId(String id) {
-        if (id == null || id.trim().isEmpty()) {
-            throw new RequestArgumentIllegalException("Transaction ID cannot be null or empty");
-        }
-    }
-
-    private void validatePaginationParameters(long page, long size) {
-        if (page <= 0) {
-            throw new RequestArgumentIllegalException("Page number must be greater than 0");
-        }
-        if (size <= 0) {
-            throw new RequestArgumentIllegalException("Page size must be greater than 0");
-        }
-        if (size > MAX_PAGE_SIZE) {
-            throw new RequestArgumentIllegalException("Page size must be less than 1000");
-        }
+    public Page<TransactionDTO> getPageTransactions(long page, long limit) {
+        CommonRequestParamValidator.validatePaginationParameters(page, limit);
+        Page<Transaction> transactionPage = transactionRepository.findPage(page, limit);
+        return new Page<>(transactionPage.getTotal(), transactionPage.getData().stream().map(TransactionDTO::from).toList());
     }
 }

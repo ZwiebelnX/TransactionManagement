@@ -10,6 +10,7 @@ import org.chen.sid.transactionmanagement.application.usecase.command.Transactio
 import org.chen.sid.transactionmanagement.application.usecase.command.dto.UpsertTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.TransactionDTO;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,14 +55,14 @@ public class TransactionController {
                            @ApiResponse(responseCode = "400", description = "Invalid transaction ID"),
                            @ApiResponse(responseCode = "404", description = "Transaction not found")})
     @GetMapping("/{id}")
-    public Transaction getTransactionById(@Parameter(description = "Transaction ID") @PathVariable String id) {
+    public TransactionDTO getTransactionById(@Parameter(description = "Transaction ID") @PathVariable String id) {
         return transactionQueryUseCase.getTransactionById(id);
     }
 
     @Operation(summary = "List transactions", description = "Get all transactions using Query pattern")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Transactions retrieved successfully")})
     @GetMapping
-    public Page<Transaction> getAllTransactions(@RequestParam(required = false, defaultValue = "1") Long page,
+    public Page<TransactionDTO> getAllTransactions(@RequestParam(required = false, defaultValue = "1") Long page,
             @RequestParam(required = false, defaultValue = "10") Long size) {
 
         return transactionQueryUseCase.getPageTransactions(page, size);

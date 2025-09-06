@@ -5,6 +5,7 @@ import org.chen.sid.transactionmanagement.application.usecase.command.Transactio
 import org.chen.sid.transactionmanagement.application.usecase.command.dto.UpsertTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
+import org.chen.sid.transactionmanagement.application.usecase.query.dto.TransactionDTO;
 import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.chen.sid.transactionmanagement.domain.model.entity.TransactionType;
@@ -53,11 +54,20 @@ class TransactionControllerTest {
 
     private Transaction sampleTransaction;
 
+    private TransactionDTO sampleTransactionDto;
+
     private UpsertTransactionRequestDTO upsertRequest;
 
     @BeforeEach
     void setUp() {
         sampleTransaction = Transaction.builder()
+                .id("test-id-123")
+                .name("Test Transaction")
+                .amount(new BigDecimal("100.00")).category("Food").type(TransactionType.DEPOSIT)
+                .createTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())
+                .build();
+        sampleTransactionDto = TransactionDTO.builder()
                 .id("test-id-123")
                 .name("Test Transaction")
                 .amount(new BigDecimal("100.00")).category("Food").type(TransactionType.DEPOSIT)
@@ -135,7 +145,7 @@ class TransactionControllerTest {
 
     @Test
     void should_return_transaction_when_valid_id_given() throws Exception {
-        when(transactionQueryUseCase.getTransactionById("test-id-123")).thenReturn(sampleTransaction);
+        when(transactionQueryUseCase.getTransactionById("test-id-123")).thenReturn(sampleTransactionDto);
 
         mockMvc.perform(get("/api/v1/transactions/test-id-123"))
                 .andExpect(status().isOk())
@@ -147,7 +157,7 @@ class TransactionControllerTest {
 
     @Test
     void should_return_all_transactions_when_transactions_exist() throws Exception {
-        Transaction transaction2 = Transaction.builder()
+        TransactionDTO transaction2 = TransactionDTO.builder()
                 .id("test-id-456")
                 .name("Another Transaction")
                 .amount(new BigDecimal("200.00")).category("Transport").type(TransactionType.WITHDRAW)
@@ -155,7 +165,7 @@ class TransactionControllerTest {
                 .updateTime(LocalDateTime.now())
                 .build();
 
-        List<Transaction> transactions = Arrays.asList(sampleTransaction, transaction2);
+        List<TransactionDTO> transactions = Arrays.asList(sampleTransactionDto, transaction2);
         when(transactionQueryUseCase.getPageTransactions(1, 10)).thenReturn(new Page<>(2, transactions));
 
         mockMvc.perform(get("/api/v1/transactions").param("page", "1").param("size", "10"))

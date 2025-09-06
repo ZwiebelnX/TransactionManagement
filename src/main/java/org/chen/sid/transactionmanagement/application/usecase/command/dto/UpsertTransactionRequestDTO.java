@@ -1,4 +1,4 @@
-package org.chen.sid.transactionmanagement.adapter.in.dto;
+package org.chen.sid.transactionmanagement.application.usecase.command.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 @Data
 @Schema(description = "Create transaction request")
-public class CreateTransactionRequestDTO {
+public class UpsertTransactionRequestDTO {
 
     @NotBlank(message = "Transaction name cannot be null or empty")
     @Size(max = 100, message = "Transaction name cannot exceed 100 characters")

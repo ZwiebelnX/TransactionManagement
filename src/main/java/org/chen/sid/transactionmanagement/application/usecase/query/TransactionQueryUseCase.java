@@ -2,13 +2,12 @@ package org.chen.sid.transactionmanagement.application.usecase.query;
 
 import lombok.RequiredArgsConstructor;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
+import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
 import org.chen.sid.transactionmanagement.common.exception.RequestArgumentIllegalException;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,9 +17,9 @@ public class TransactionQueryUseCase {
     private static final int MAX_PAGE_SIZE = 1000;
 
     @Cacheable(value = "transaction", key = "#id")
-    public Optional<Transaction> getTransactionById(String id) {
+    public Transaction getTransactionById(String id) {
         validateId(id);
-        return transactionRepository.findById(id);
+        return transactionRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Transaction not found"));
     }
 
     public Page<Transaction> getPageTransactions(long page, long limit) {

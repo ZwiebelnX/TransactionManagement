@@ -1,5 +1,6 @@
 package org.chen.sid.transactionmanagement.adapter.in.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.chen.sid.transactionmanagement.common.exception.basic.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -46,6 +48,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleRuntimeException(RuntimeException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         problemDetail.setTitle("Internal Server Error");
+        log.error(ex.getMessage(), ex);
         return problemDetail;
     }
 }

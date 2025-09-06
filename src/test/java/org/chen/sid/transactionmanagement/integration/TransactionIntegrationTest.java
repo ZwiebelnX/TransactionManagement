@@ -4,8 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
 import org.chen.sid.transactionmanagement.TransactionManagementApplication;
-import org.chen.sid.transactionmanagement.adapter.in.dto.CreateTransactionRequestDTO;
-import org.chen.sid.transactionmanagement.adapter.in.dto.UpdateTransactionRequestDTO;
+import org.chen.sid.transactionmanagement.application.usecase.command.dto.UpsertTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +31,7 @@ class TransactionIntegrationTest {
 
     @Test
     void should_create_transaction_successfully_when_valid_request_given() {
-        CreateTransactionRequestDTO request = new CreateTransactionRequestDTO();
+        UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO();
         request.setName("Test Transaction");
         request.setAmount(new BigDecimal("100.50"));
 
@@ -55,7 +54,7 @@ class TransactionIntegrationTest {
 
     @Test
     void should_return_bad_request_when_creating_transaction_with_invalid_data() {
-        CreateTransactionRequestDTO request = new CreateTransactionRequestDTO();
+        UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO();
         request.setName("");
         request.setAmount(new BigDecimal("-50.00"));
 
@@ -75,7 +74,7 @@ class TransactionIntegrationTest {
 
     @Test
     void should_return_bad_request_when_creating_transaction_with_null_amount() {
-        CreateTransactionRequestDTO request = new CreateTransactionRequestDTO();
+        UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO();
         request.setName("Valid Name");
         request.setAmount(null);
 
@@ -93,7 +92,7 @@ class TransactionIntegrationTest {
 
     @Test
     void should_update_transaction_successfully_when_valid_request_given() {
-        CreateTransactionRequestDTO createRequest = new CreateTransactionRequestDTO();
+        UpsertTransactionRequestDTO createRequest = new UpsertTransactionRequestDTO();
         createRequest.setName("Original Transaction");
         createRequest.setAmount(new BigDecimal("100.00"));
 
@@ -106,7 +105,7 @@ class TransactionIntegrationTest {
                 .extract()
                 .path("id");
 
-        UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO();
+        UpsertTransactionRequestDTO updateRequest = new UpsertTransactionRequestDTO();
         updateRequest.setName("Updated Transaction");
         updateRequest.setAmount(new BigDecimal("200.00"));
 
@@ -127,7 +126,7 @@ class TransactionIntegrationTest {
 
     @Test
     void should_return_not_found_when_updating_non_existent_transaction() {
-        UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO();
+        UpsertTransactionRequestDTO updateRequest = new UpsertTransactionRequestDTO();
         updateRequest.setName("Updated Transaction");
         updateRequest.setAmount(new BigDecimal("200.00"));
 
@@ -145,7 +144,7 @@ class TransactionIntegrationTest {
 
     @Test
     void should_return_bad_request_when_updating_transaction_with_negative_amount() {
-        CreateTransactionRequestDTO createRequest = new CreateTransactionRequestDTO();
+        UpsertTransactionRequestDTO createRequest = new UpsertTransactionRequestDTO();
         createRequest.setName("Original Transaction");
         createRequest.setAmount(new BigDecimal("100.00"));
 
@@ -158,7 +157,7 @@ class TransactionIntegrationTest {
                 .extract()
                 .path("id");
 
-        UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO();
+        UpsertTransactionRequestDTO updateRequest = new UpsertTransactionRequestDTO();
         updateRequest.setName("Updated Transaction");
         updateRequest.setAmount(new BigDecimal("-100.00"));
 
@@ -167,7 +166,7 @@ class TransactionIntegrationTest {
 
     @Test
     void should_get_transaction_successfully_when_valid_id_given() {
-        CreateTransactionRequestDTO createRequest = new CreateTransactionRequestDTO();
+        UpsertTransactionRequestDTO createRequest = new UpsertTransactionRequestDTO();
         createRequest.setName("Test Transaction");
         createRequest.setAmount(new BigDecimal("150.75"));
 
@@ -195,15 +194,15 @@ class TransactionIntegrationTest {
 
     @Test
     void should_return_internal_error_when_getting_non_existent_transaction() {
-        String response = given().when().get("/api/v1/transactions/{id}", "non-existent-id").then().statusCode(500).extract().asString();
+        String response = given().when().get("/api/v1/transactions/{id}", "non-existent-id").then().statusCode(404).extract().asString();
 
-        assertThat(response).contains("Internal Server Error");
+        assertThat(response).contains("Business exception");
     }
 
     @Test
     void should_get_paginated_transactions_successfully() {
         for (int i = 1; i <= 3; i++) {
-            CreateTransactionRequestDTO createRequest = new CreateTransactionRequestDTO();
+            UpsertTransactionRequestDTO createRequest = new UpsertTransactionRequestDTO();
             createRequest.setName("Test Transaction " + i);
             createRequest.setAmount(new BigDecimal(i * 100 + ".00"));
 
@@ -247,7 +246,7 @@ class TransactionIntegrationTest {
 
     @Test
     void should_delete_transaction_successfully_when_valid_id_given() {
-        CreateTransactionRequestDTO createRequest = new CreateTransactionRequestDTO();
+        UpsertTransactionRequestDTO createRequest = new UpsertTransactionRequestDTO();
         createRequest.setName("Transaction to Delete");
         createRequest.setAmount(new BigDecimal("100.00"));
 
@@ -262,7 +261,7 @@ class TransactionIntegrationTest {
 
         given().when().delete("/api/v1/transactions/{id}", transactionId).then().statusCode(204);
 
-        given().when().get("/api/v1/transactions/{id}", transactionId).then().statusCode(500);
+        given().when().get("/api/v1/transactions/{id}", transactionId).then().statusCode(404);
     }
 
     @Test

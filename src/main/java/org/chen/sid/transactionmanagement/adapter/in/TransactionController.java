@@ -6,9 +6,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.chen.sid.transactionmanagement.adapter.in.dto.CreateTransactionRequestDTO;
-import org.chen.sid.transactionmanagement.adapter.in.dto.UpdateTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.command.TransactionCommandUseCase;
+import org.chen.sid.transactionmanagement.application.usecase.command.dto.UpsertTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.domain.model.command.CreateTransactionCommand;
@@ -17,8 +16,6 @@ import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @Tag(name = "Transaction Management", description = "Transaction CRUD operations using CQRS pattern")
 @RestController
@@ -40,7 +37,7 @@ public class TransactionController {
                            @ApiResponse(responseCode = "400", description = "Invalid request data")})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Transaction createTransaction(@Valid @RequestBody CreateTransactionRequestDTO request) {
+    public Transaction createTransaction(@Valid @RequestBody UpsertTransactionRequestDTO request) {
         CreateTransactionCommand command = CreateTransactionCommand.of(request.getName(), request.getAmount());
         return transactionCommandUseCase.createTransaction(command);
     }
@@ -51,7 +48,7 @@ public class TransactionController {
                            @ApiResponse(responseCode = "404", description = "Transaction not found")})
     @PutMapping("/{id}")
     public Transaction updateTransaction(@Parameter(description = "Transaction ID") @PathVariable String id,
-            @Valid @RequestBody UpdateTransactionRequestDTO request) {
+            @Valid @RequestBody UpsertTransactionRequestDTO request) {
         UpdateTransactionCommand command = UpdateTransactionCommand.of(id, request.getName(), request.getAmount());
         return transactionCommandUseCase.updateTransaction(command);
     }
@@ -62,11 +59,7 @@ public class TransactionController {
                            @ApiResponse(responseCode = "404", description = "Transaction not found")})
     @GetMapping("/{id}")
     public Transaction getTransactionById(@Parameter(description = "Transaction ID") @PathVariable String id) {
-        Optional<Transaction> transaction = transactionQueryUseCase.getTransactionById(id);
-        if (transaction.isEmpty()) {
-            throw new RuntimeException("Transaction not found with id: " + id);
-        }
-        return transaction.get();
+        return transactionQueryUseCase.getTransactionById(id);
     }
 
     @Operation(summary = "List transactions", description = "Get all transactions using Query pattern")

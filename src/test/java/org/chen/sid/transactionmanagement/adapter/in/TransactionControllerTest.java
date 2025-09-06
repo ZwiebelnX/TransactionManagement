@@ -1,9 +1,8 @@
 package org.chen.sid.transactionmanagement.adapter.in;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.chen.sid.transactionmanagement.adapter.in.dto.CreateTransactionRequestDTO;
-import org.chen.sid.transactionmanagement.adapter.in.dto.UpdateTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.command.TransactionCommandUseCase;
+import org.chen.sid.transactionmanagement.application.usecase.command.dto.UpsertTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
@@ -22,7 +21,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
@@ -55,8 +53,8 @@ class TransactionControllerTest {
     private ObjectMapper objectMapper;
 
     private Transaction sampleTransaction;
-    private CreateTransactionRequestDTO createRequest;
-    private UpdateTransactionRequestDTO updateRequest;
+
+    private UpsertTransactionRequestDTO upsertRequest;
 
     @BeforeEach
     void setUp() {
@@ -68,20 +66,16 @@ class TransactionControllerTest {
                 .updateTime(LocalDateTime.now())
                 .build();
 
-        createRequest = new CreateTransactionRequestDTO();
-        createRequest.setName("Test Transaction");
-        createRequest.setAmount(new BigDecimal("100.00"));
-
-        updateRequest = new UpdateTransactionRequestDTO();
-        updateRequest.setName("Updated Transaction");
-        updateRequest.setAmount(new BigDecimal("200.00"));
+        upsertRequest = new UpsertTransactionRequestDTO();
+        upsertRequest.setName("Test Transaction");
+        upsertRequest.setAmount(new BigDecimal("100.00"));
     }
 
     @Test
     void should_return_created_transaction_when_valid_request_given() throws Exception {
         when(transactionCommandUseCase.createTransaction(any(CreateTransactionCommand.class))).thenReturn(sampleTransaction);
 
-        mockMvc.perform(post("/api/v1/transactions").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createRequest)))
+        mockMvc.perform(post("/api/v1/transactions").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(upsertRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("test-id-123"))
                 .andExpect(jsonPath("$.name").value("Test Transaction"))
@@ -92,10 +86,10 @@ class TransactionControllerTest {
 
     @Test
     void should_return_bad_request_when_invalid_request_given() throws Exception {
-        createRequest.setName("");
-        createRequest.setAmount(null);
+        upsertRequest.setName("");
+        upsertRequest.setAmount(null);
 
-        mockMvc.perform(post("/api/v1/transactions").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createRequest)))
+        mockMvc.perform(post("/api/v1/transactions").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(upsertRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Validation Error"));
 
@@ -107,7 +101,7 @@ class TransactionControllerTest {
         when(transactionCommandUseCase.createTransaction(any(CreateTransactionCommand.class))).thenThrow(
                 new IllegalArgumentException("Transaction amount cannot be negative"));
 
-        mockMvc.perform(post("/api/v1/transactions").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createRequest)))
+        mockMvc.perform(post("/api/v1/transactions").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(upsertRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Bad Request"))
                 .andExpect(jsonPath("$.detail").value("Transaction amount cannot be negative"));
@@ -118,7 +112,7 @@ class TransactionControllerTest {
         when(transactionCommandUseCase.updateTransaction(any(UpdateTransactionCommand.class))).thenReturn(sampleTransaction);
 
         mockMvc.perform(put("/api/v1/transactions/test-id-123").contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(objectMapper.writeValueAsString(upsertRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("test-id-123"))
                 .andExpect(jsonPath("$.name").value("Test Transaction"));
@@ -132,13 +126,13 @@ class TransactionControllerTest {
                 new DataNotFoundException("Transaction not found with id: non-existent"));
 
         mockMvc.perform(put("/api/v1/transactions/non-existent").contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(objectMapper.writeValueAsString(upsertRequest)))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.title").value("Business exception"));
     }
 
     @Test
     void should_return_transaction_when_valid_id_given() throws Exception {
-        when(transactionQueryUseCase.getTransactionById("test-id-123")).thenReturn(Optional.of(sampleTransaction));
+        when(transactionQueryUseCase.getTransactionById("test-id-123")).thenReturn(sampleTransaction);
 
         mockMvc.perform(get("/api/v1/transactions/test-id-123"))
                 .andExpect(status().isOk())
@@ -146,17 +140,6 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.name").value("Test Transaction"));
 
         verify(transactionQueryUseCase, times(1)).getTransactionById("test-id-123");
-    }
-
-    @Test
-    void should_return_internal_error_when_transaction_id_does_not_exist() throws Exception {
-        when(transactionQueryUseCase.getTransactionById("non-existent")).thenReturn(Optional.empty());
-
-        mockMvc.perform(get("/api/v1/transactions/non-existent"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.title").value("Internal Server Error"));
-
-        verify(transactionQueryUseCase, times(1)).getTransactionById("non-existent");
     }
 
     @Test

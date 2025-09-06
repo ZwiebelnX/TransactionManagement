@@ -2,6 +2,7 @@ package org.chen.sid.transactionmanagement.application.usecase;
 
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
+import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
 import org.chen.sid.transactionmanagement.common.exception.RequestArgumentIllegalException;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
@@ -53,11 +54,10 @@ class TransactionQueryUseCaseTest {
     void should_return_transaction_when_valid_id_given() {
         when(transactionRepository.findById("test-id-123")).thenReturn(Optional.of(sampleTransaction));
 
-        Optional<Transaction> result = transactionQueryUseCase.getTransactionById("test-id-123");
+        Transaction result = transactionQueryUseCase.getTransactionById("test-id-123");
 
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo("test-id-123");
-        assertThat(result.get().getName()).isEqualTo("Test Transaction");
+        assertThat(result.getId()).isEqualTo("test-id-123");
+        assertThat(result.getName()).isEqualTo("Test Transaction");
         verify(transactionRepository, times(1)).findById("test-id-123");
     }
 
@@ -65,9 +65,7 @@ class TransactionQueryUseCaseTest {
     void should_return_empty_when_transaction_not_found() {
         when(transactionRepository.findById("non-existent")).thenReturn(Optional.empty());
 
-        Optional<Transaction> result = transactionQueryUseCase.getTransactionById("non-existent");
-
-        assertThat(result).isEmpty();
+        assertThatThrownBy(() -> transactionQueryUseCase.getTransactionById("non-existent")).isInstanceOf(DataNotFoundException.class);
         verify(transactionRepository, times(1)).findById("non-existent");
     }
 

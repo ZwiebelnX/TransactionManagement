@@ -4,8 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.chen.sid.transactionmanagement.domain.model.command.CreateTransactionCommand;
-import org.chen.sid.transactionmanagement.domain.model.command.UpdateTransactionCommand;
+import org.chen.sid.transactionmanagement.domain.model.command.UpsertTransactionCommand;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,7 +25,7 @@ public class Transaction {
 
     private LocalDateTime updateTime;
 
-    public static Transaction create(CreateTransactionCommand command) {
+    public static Transaction create(UpsertTransactionCommand command) {
         validateName(command.getName());
         validateAmount(command.getAmount());
 
@@ -40,7 +39,7 @@ public class Transaction {
                 .build();
     }
 
-    public void update(UpdateTransactionCommand command) {
+    public void update(UpsertTransactionCommand command) {
         if (command.getName() != null) {
             validateName(command.getName());
             this.name = command.getName().trim();

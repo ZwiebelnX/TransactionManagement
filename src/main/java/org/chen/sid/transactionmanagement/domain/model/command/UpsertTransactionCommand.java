@@ -11,12 +11,12 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateTransactionCommand {
+public class UpsertTransactionCommand {
     private String name;
 
     private BigDecimal amount;
 
-    public static CreateTransactionCommand of(String name, BigDecimal amount) {
-        return CreateTransactionCommand.builder().name(name).amount(amount).build();
+    public static UpsertTransactionCommand of(String name, BigDecimal amount) {
+        return UpsertTransactionCommand.builder().name(name).amount(amount).build();
     }
 }

@@ -6,8 +6,6 @@ import org.chen.sid.transactionmanagement.application.usecase.command.dto.Upsert
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
-import org.chen.sid.transactionmanagement.domain.model.command.CreateTransactionCommand;
-import org.chen.sid.transactionmanagement.domain.model.command.UpdateTransactionCommand;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,7 +71,7 @@ class TransactionControllerTest {
 
     @Test
     void should_return_created_transaction_when_valid_request_given() throws Exception {
-        when(transactionCommandUseCase.createTransaction(any(CreateTransactionCommand.class))).thenReturn(sampleTransaction);
+        when(transactionCommandUseCase.createTransaction(any(UpsertTransactionRequestDTO.class))).thenReturn(sampleTransaction);
 
         mockMvc.perform(post("/api/v1/transactions").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(upsertRequest)))
                 .andExpect(status().isCreated())
@@ -81,7 +79,7 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.name").value("Test Transaction"))
                 .andExpect(jsonPath("$.amount").value(100.00));
 
-        verify(transactionCommandUseCase, times(1)).createTransaction(any(CreateTransactionCommand.class));
+        verify(transactionCommandUseCase, times(1)).createTransaction(any(UpsertTransactionRequestDTO.class));
     }
 
     @Test
@@ -93,12 +91,12 @@ class TransactionControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Validation Error"));
 
-        verify(transactionCommandUseCase, never()).createTransaction(any(CreateTransactionCommand.class));
+        verify(transactionCommandUseCase, never()).createTransaction(any(UpsertTransactionRequestDTO.class));
     }
 
     @Test
     void should_return_bad_request_when_business_exception_thrown() throws Exception {
-        when(transactionCommandUseCase.createTransaction(any(CreateTransactionCommand.class))).thenThrow(
+        when(transactionCommandUseCase.createTransaction(any(UpsertTransactionRequestDTO.class))).thenThrow(
                 new IllegalArgumentException("Transaction amount cannot be negative"));
 
         mockMvc.perform(post("/api/v1/transactions").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(upsertRequest)))
@@ -109,7 +107,7 @@ class TransactionControllerTest {
 
     @Test
     void should_return_updated_transaction_when_valid_update_request_given() throws Exception {
-        when(transactionCommandUseCase.updateTransaction(any(UpdateTransactionCommand.class))).thenReturn(sampleTransaction);
+        when(transactionCommandUseCase.updateTransaction(anyString(), any(UpsertTransactionRequestDTO.class))).thenReturn(sampleTransaction);
 
         mockMvc.perform(put("/api/v1/transactions/test-id-123").contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(upsertRequest)))
@@ -117,12 +115,12 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.id").value("test-id-123"))
                 .andExpect(jsonPath("$.name").value("Test Transaction"));
 
-        verify(transactionCommandUseCase, times(1)).updateTransaction(any(UpdateTransactionCommand.class));
+        verify(transactionCommandUseCase, times(1)).updateTransaction(anyString(), any(UpsertTransactionRequestDTO.class));
     }
 
     @Test
     void should_return_not_found_when_transaction_does_not_exist() throws Exception {
-        when(transactionCommandUseCase.updateTransaction(any(UpdateTransactionCommand.class))).thenThrow(
+        when(transactionCommandUseCase.updateTransaction(anyString(), any(UpsertTransactionRequestDTO.class))).thenThrow(
                 new DataNotFoundException("Transaction not found with id: non-existent"));
 
         mockMvc.perform(put("/api/v1/transactions/non-existent").contentType(MediaType.APPLICATION_JSON)

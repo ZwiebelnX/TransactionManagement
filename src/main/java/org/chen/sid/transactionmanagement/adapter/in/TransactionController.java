@@ -10,8 +10,6 @@ import org.chen.sid.transactionmanagement.application.usecase.command.Transactio
 import org.chen.sid.transactionmanagement.application.usecase.command.dto.UpsertTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQueryUseCase;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
-import org.chen.sid.transactionmanagement.domain.model.command.CreateTransactionCommand;
-import org.chen.sid.transactionmanagement.domain.model.command.UpdateTransactionCommand;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,8 +36,7 @@ public class TransactionController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Transaction createTransaction(@Valid @RequestBody UpsertTransactionRequestDTO request) {
-        CreateTransactionCommand command = CreateTransactionCommand.of(request.getName(), request.getAmount());
-        return transactionCommandUseCase.createTransaction(command);
+        return transactionCommandUseCase.createTransaction(request);
     }
 
     @Operation(summary = "Update transaction", description = "Update an existing transaction using Command pattern")
@@ -49,8 +46,7 @@ public class TransactionController {
     @PutMapping("/{id}")
     public Transaction updateTransaction(@Parameter(description = "Transaction ID") @PathVariable String id,
             @Valid @RequestBody UpsertTransactionRequestDTO request) {
-        UpdateTransactionCommand command = UpdateTransactionCommand.of(id, request.getName(), request.getAmount());
-        return transactionCommandUseCase.updateTransaction(command);
+        return transactionCommandUseCase.updateTransaction(id, request);
     }
 
     @Operation(summary = "Get transaction", description = "Get transaction by ID using Query pattern")

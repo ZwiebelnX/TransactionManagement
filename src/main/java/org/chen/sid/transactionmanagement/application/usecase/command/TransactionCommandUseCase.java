@@ -1,9 +1,9 @@
 package org.chen.sid.transactionmanagement.application.usecase.command;
 
+import org.chen.sid.transactionmanagement.application.usecase.command.dto.UpsertTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
-import org.chen.sid.transactionmanagement.domain.model.command.CreateTransactionCommand;
-import org.chen.sid.transactionmanagement.domain.model.command.UpdateTransactionCommand;
+import org.chen.sid.transactionmanagement.domain.model.command.UpsertTransactionCommand;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -19,17 +19,19 @@ public class TransactionCommandUseCase {
         this.transactionRepository = transactionRepository;
     }
 
-    public Transaction createTransaction(CreateTransactionCommand command) {
+    public Transaction createTransaction(UpsertTransactionRequestDTO request) {
+        UpsertTransactionCommand command = UpsertTransactionCommand.of(request.getName(), request.getAmount());
         Transaction transaction = Transaction.create(command);
         return transactionRepository.save(transaction);
     }
 
-    @CacheEvict(value = "transaction", key = "#command.id")
-    public Transaction updateTransaction(UpdateTransactionCommand command) {
-        validateId(command.getId());
+    @CacheEvict(value = "transaction", key = "#id")
+    public Transaction updateTransaction(String id, UpsertTransactionRequestDTO request) {
+        validateId(id);
 
-        Transaction transaction = transactionRepository.findById(command.getId())
-                .orElseThrow(() -> new DataNotFoundException("Transaction not found with id: " + command.getId()));
+        UpsertTransactionCommand command = UpsertTransactionCommand.of(request.getName(), request.getAmount());
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Transaction not found with id: " + id));
 
         transaction.update(command);
         return transactionRepository.save(transaction);

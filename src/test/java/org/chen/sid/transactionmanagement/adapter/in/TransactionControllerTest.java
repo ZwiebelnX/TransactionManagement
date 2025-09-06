@@ -7,6 +7,7 @@ import org.chen.sid.transactionmanagement.application.usecase.query.TransactionQ
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
+import org.chen.sid.transactionmanagement.domain.model.entity.TransactionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,7 @@ class TransactionControllerTest {
         sampleTransaction = Transaction.builder()
                 .id("test-id-123")
                 .name("Test Transaction")
-                .amount(new BigDecimal("100.00"))
+                .amount(new BigDecimal("100.00")).category("Food").type(TransactionType.DEPOSIT)
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
                 .build();
@@ -67,6 +68,8 @@ class TransactionControllerTest {
         upsertRequest = new UpsertTransactionRequestDTO();
         upsertRequest.setName("Test Transaction");
         upsertRequest.setAmount(new BigDecimal("100.00"));
+        upsertRequest.setCategory("Food");
+        upsertRequest.setType(TransactionType.DEPOSIT);
     }
 
     @Test
@@ -77,7 +80,9 @@ class TransactionControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("test-id-123"))
                 .andExpect(jsonPath("$.name").value("Test Transaction"))
-                .andExpect(jsonPath("$.amount").value(100.00));
+                .andExpect(jsonPath("$.amount").value(100.00))
+                .andExpect(jsonPath("$.category").value("Food"))
+                .andExpect(jsonPath("$.type").value("DEPOSIT"));
 
         verify(transactionCommandUseCase, times(1)).createTransaction(any(UpsertTransactionRequestDTO.class));
     }
@@ -145,7 +150,7 @@ class TransactionControllerTest {
         Transaction transaction2 = Transaction.builder()
                 .id("test-id-456")
                 .name("Another Transaction")
-                .amount(new BigDecimal("200.00"))
+                .amount(new BigDecimal("200.00")).category("Transport").type(TransactionType.WITHDRAW)
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
                 .build();

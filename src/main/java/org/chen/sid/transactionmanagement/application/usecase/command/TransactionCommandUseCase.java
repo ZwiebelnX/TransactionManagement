@@ -20,7 +20,8 @@ public class TransactionCommandUseCase {
     }
 
     public Transaction createTransaction(UpsertTransactionRequestDTO request) {
-        UpsertTransactionCommand command = UpsertTransactionCommand.of(request.getName(), request.getAmount());
+        UpsertTransactionCommand command = UpsertTransactionCommand.of(request.getName(), request.getAmount(), request.getCategory(),
+                request.getType());
         Transaction transaction = Transaction.create(command);
         return transactionRepository.save(transaction);
     }
@@ -29,7 +30,8 @@ public class TransactionCommandUseCase {
     public Transaction updateTransaction(String id, UpsertTransactionRequestDTO request) {
         validateId(id);
 
-        UpsertTransactionCommand command = UpsertTransactionCommand.of(request.getName(), request.getAmount());
+        UpsertTransactionCommand command = UpsertTransactionCommand.of(request.getName(), request.getAmount(), request.getCategory(),
+                request.getType());
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Transaction not found with id: " + id));
 

@@ -21,6 +21,10 @@ public class Transaction {
 
     private BigDecimal amount;
 
+    private String category;
+
+    private TransactionType type;
+
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
@@ -33,7 +37,7 @@ public class Transaction {
         return Transaction.builder()
                 .id(UUID.randomUUID().toString())
                 .name(command.getName().trim())
-                .amount(command.getAmount())
+                .amount(command.getAmount()).category(command.getCategory()).type(command.getType())
                 .createTime(now)
                 .updateTime(now)
                 .build();
@@ -47,6 +51,12 @@ public class Transaction {
         if (command.getAmount() != null) {
             validateAmount(command.getAmount());
             this.amount = command.getAmount();
+        }
+        if (command.getCategory() != null) {
+            this.category = command.getCategory();
+        }
+        if (command.getType() != null) {
+            this.type = command.getType();
         }
         this.updateTime = LocalDateTime.now();
     }

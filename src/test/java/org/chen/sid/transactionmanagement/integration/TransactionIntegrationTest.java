@@ -7,6 +7,7 @@ import org.chen.sid.transactionmanagement.TransactionManagementApplication;
 import org.chen.sid.transactionmanagement.application.usecase.command.dto.UpsertTransactionRequestDTO;
 import org.chen.sid.transactionmanagement.application.usecase.query.dto.Page;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
+import org.chen.sid.transactionmanagement.domain.model.entity.TransactionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +35,8 @@ class TransactionIntegrationTest {
         UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO();
         request.setName("Test Transaction");
         request.setAmount(new BigDecimal("100.50"));
+        request.setCategory("Food");
+        request.setType(TransactionType.DEPOSIT);
 
         Transaction createdTransaction = given().contentType(ContentType.JSON)
                 .body(request)
@@ -48,6 +51,8 @@ class TransactionIntegrationTest {
         assertThat(createdTransaction.getId()).isNotNull();
         assertThat(createdTransaction.getName()).isEqualTo("Test Transaction");
         assertThat(createdTransaction.getAmount()).isEqualTo(new BigDecimal("100.50"));
+        assertThat(createdTransaction.getCategory()).isEqualTo("Food");
+        assertThat(createdTransaction.getType()).isEqualTo(TransactionType.DEPOSIT);
         assertThat(createdTransaction.getCreateTime()).isNotNull();
         assertThat(createdTransaction.getUpdateTime()).isNotNull();
     }
@@ -95,6 +100,8 @@ class TransactionIntegrationTest {
         UpsertTransactionRequestDTO createRequest = new UpsertTransactionRequestDTO();
         createRequest.setName("Original Transaction");
         createRequest.setAmount(new BigDecimal("100.00"));
+        createRequest.setCategory("Shopping");
+        createRequest.setType(TransactionType.WITHDRAW);
 
         String transactionId = given().contentType(ContentType.JSON)
                 .body(createRequest)
@@ -108,6 +115,8 @@ class TransactionIntegrationTest {
         UpsertTransactionRequestDTO updateRequest = new UpsertTransactionRequestDTO();
         updateRequest.setName("Updated Transaction");
         updateRequest.setAmount(new BigDecimal("200.00"));
+        updateRequest.setCategory("Transport");
+        updateRequest.setType(TransactionType.TRANSFER);
 
         Transaction updatedTransaction = given().contentType(ContentType.JSON)
                 .body(updateRequest)
@@ -122,6 +131,8 @@ class TransactionIntegrationTest {
         assertThat(updatedTransaction.getId()).isEqualTo(transactionId);
         assertThat(updatedTransaction.getName()).isEqualTo("Updated Transaction");
         assertThat(updatedTransaction.getAmount()).isEqualTo(new BigDecimal("200.00"));
+        assertThat(updatedTransaction.getCategory()).isEqualTo("Transport");
+        assertThat(updatedTransaction.getType()).isEqualTo(TransactionType.TRANSFER);
     }
 
     @Test

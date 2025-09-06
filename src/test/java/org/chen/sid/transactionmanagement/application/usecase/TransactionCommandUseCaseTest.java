@@ -5,6 +5,7 @@ import org.chen.sid.transactionmanagement.application.usecase.command.dto.Upsert
 import org.chen.sid.transactionmanagement.common.exception.DataNotFoundException;
 import org.chen.sid.transactionmanagement.domain.infrastructure.TransactionRepository;
 import org.chen.sid.transactionmanagement.domain.model.entity.Transaction;
+import org.chen.sid.transactionmanagement.domain.model.entity.TransactionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,7 @@ class TransactionCommandUseCaseTest {
         sampleTransaction = Transaction.builder()
                 .id("test-id-123")
                 .name("Test Transaction")
-                .amount(new BigDecimal("100.00"))
+                .amount(new BigDecimal("100.00")).category("Food").type(TransactionType.DEPOSIT)
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
                 .build();
@@ -49,6 +50,8 @@ class TransactionCommandUseCaseTest {
     @Test
     void should_create_transaction_when_valid_command_given() {
         UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO("Test Transaction", new BigDecimal("100.00"));
+        request.setCategory("Food");
+        request.setType(TransactionType.DEPOSIT);
         when(transactionRepository.save(any(Transaction.class))).thenReturn(sampleTransaction);
 
         Transaction result = transactionCommandUseCase.createTransaction(request);
@@ -62,6 +65,8 @@ class TransactionCommandUseCaseTest {
     @Test
     void should_throw_exception_when_null_name_given() {
         UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO(null, new BigDecimal("100.00"));
+        request.setCategory("Food");
+        request.setType(TransactionType.DEPOSIT);
 
         assertThatThrownBy(() -> transactionCommandUseCase.createTransaction(request)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Transaction name cannot be null or empty");
@@ -71,6 +76,8 @@ class TransactionCommandUseCaseTest {
     @Test
     void should_throw_exception_when_negative_amount_given() {
         UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO("Test Transaction", new BigDecimal("-100.00"));
+        request.setCategory("Food");
+        request.setType(TransactionType.DEPOSIT);
 
         assertThatThrownBy(() -> transactionCommandUseCase.createTransaction(request)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Transaction amount cannot be negative");
@@ -80,6 +87,8 @@ class TransactionCommandUseCaseTest {
     @Test
     void should_update_transaction_when_valid_command_given() {
         UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO("Updated Transaction", new BigDecimal("200.00"));
+        request.setCategory("Shopping");
+        request.setType(TransactionType.WITHDRAW);
         when(transactionRepository.findById("test-id-123")).thenReturn(Optional.of(sampleTransaction));
         when(transactionRepository.save(any(Transaction.class))).thenReturn(sampleTransaction);
 
@@ -93,6 +102,8 @@ class TransactionCommandUseCaseTest {
     @Test
     void should_throw_exception_when_transaction_not_found() {
         UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO("Updated Transaction", new BigDecimal("200.00"));
+        request.setCategory("Shopping");
+        request.setType(TransactionType.WITHDRAW);
         when(transactionRepository.findById("non-existent")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> transactionCommandUseCase.updateTransaction("non-existent", request)).isInstanceOf(DataNotFoundException.class)
@@ -103,6 +114,8 @@ class TransactionCommandUseCaseTest {
     @Test
     void should_throw_exception_when_null_id_given_for_update() {
         UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO("Updated Transaction", new BigDecimal("200.00"));
+        request.setCategory("Shopping");
+        request.setType(TransactionType.WITHDRAW);
 
         assertThatThrownBy(() -> transactionCommandUseCase.updateTransaction(null, request)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Transaction ID cannot be null or empty");
@@ -113,6 +126,8 @@ class TransactionCommandUseCaseTest {
     @Test
     void should_throw_exception_when_empty_id_given_for_update() {
         UpsertTransactionRequestDTO request = new UpsertTransactionRequestDTO("Updated Transaction", new BigDecimal("200.00"));
+        request.setCategory("Shopping");
+        request.setType(TransactionType.WITHDRAW);
 
         assertThatThrownBy(() -> transactionCommandUseCase.updateTransaction("", request)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Transaction ID cannot be null or empty");

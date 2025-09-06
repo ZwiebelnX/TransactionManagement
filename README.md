@@ -298,6 +298,15 @@ docker run -p 8080:8080 transaction-management
 docker-compose up --build
 ```
 
+### Kubernetes
+
+```bash
+# Create Namespace
+kubectl create namespace transaction-management
+# Apply Configs
+kubectl apply -k k8s/
+```
+
 ### 🔍 Access Points
 
 - **Application**: http://localhost:8080

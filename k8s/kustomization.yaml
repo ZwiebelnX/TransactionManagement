@@ -1,0 +1,7 @@
+kind: Kustomization
+namespace: transaction-management
+images:
+  - name: transaction-management
+    newName: ghcr.io/zwiebelnx/transactionmanagement:latest
+resources:
+  - transaction-management.yaml
